@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "parser.h"
-#include "blocks.h"
-#include "validation.h"
-#include "utils.h"
 
 int parse_pcapng(FILE *f, pcapng_t *pcapng)
 {
@@ -23,25 +17,47 @@ int parse_pcapng(FILE *f, pcapng_t *pcapng)
         if (file_endianness != get_system_endianness())
             block_type = swap32(block_type);
 
-        fseek(f, -4, SEEK_CUR);
+        if (fseek(f, -4, SEEK_CUR) != 0)
+            return PARSE_IO_ERROR;
 
         switch (block_type) {
 
-        case 0x00000001: {
+        case IDB: {
             idb_t idb = {0};
 
             result = read_idb(f, &idb);
             if (result != PARSE_OK)
                 return result;
+
+            idb_t *tmp = realloc(pcapng->interfaces, (pcapng->interface_count + 1) * sizeof(idb_t));
+
+            if (tmp == NULL)
+                return PARSE_OOM;
+
+            pcapng->interfaces = tmp;
+
+            pcapng->interfaces[pcapng->interface_count] = idb;
+            pcapng->interface_count++;
+
             break;
         }
 
-        case 0x00000006: {
+        case EPB: {
             epb_t epb = {0};
 
             result = read_epb(f, &epb);
             if (result != PARSE_OK)
                 return result;
+
+            epb_t *tmp = realloc(pcapng->packets, (pcapng->packet_count + 1) * sizeof(epb_t) );
+
+            if (tmp == NULL)
+                return PARSE_OOM;
+
+            pcapng->packets = tmp;
+
+            pcapng->packets[pcapng->packet_count] = epb;
+            pcapng->packet_count++;
 
             break;
         }
@@ -52,4 +68,33 @@ int parse_pcapng(FILE *f, pcapng_t *pcapng)
     }
 
     return PARSE_OK;
+}
+
+void free_pcapng(pcapng_t *pcapng) {
+    for (size_t i = 0; i < pcapng->shb.options_count; i++)
+        free(pcapng->shb.options[i].value);
+
+    free(pcapng->shb.options);
+
+    for (size_t i = 0; i < pcapng->interface_count; i++) {
+        for (size_t j = 0; j < pcapng->interfaces[i].options_count; j++) {
+            free(pcapng->interfaces[i].options[j].value);
+        }
+
+        free(pcapng->interfaces[i].options);
+    }
+
+    free(pcapng->interfaces);
+
+    for (size_t i = 0; i < pcapng->packet_count; i++) {
+        free(pcapng->packets[i].packet_data);
+
+        for (size_t j = 0; j < pcapng->packets[i].options_count; j++) {
+            free(pcapng->packets[i].options[j].value);
+        }
+
+        free(pcapng->packets[i].options);
+    }
+
+    free(pcapng->packets);
 }

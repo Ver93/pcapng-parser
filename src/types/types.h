@@ -18,6 +18,22 @@ typedef enum {
     PARSE_OOM
 } parse_result_t;
 
+typedef enum {
+    SHB = 0x0A0D0D0A,
+    IDB = 0x00000001,
+    // PB  = 0x00000002,
+    // SPB = 0x00000003,
+    // NRB = 0x00000004,
+    // ISB = 0x00000005,
+    EPB = 0x00000006,
+    // DSB = 0x0000000A,
+
+    // IRIG_TS = 0x00000009,
+
+    // CB0 = 0x00000BAD,
+    // CB1 = 0x40000BAD
+} blocks_t;
+
 typedef struct {
     uint16_t code;
     uint16_t length;
