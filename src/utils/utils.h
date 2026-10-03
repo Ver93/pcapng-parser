@@ -5,6 +5,12 @@
 #include <stdio.h>
 #include "types.h"
 
+extern int debug;
+extern endianness_t file_endianness;
+
+#define DEBUG_PRINT(...) \
+    do { if (debug) printf(__VA_ARGS__); } while(0)
+
 uint16_t swap16(uint16_t x);
 uint32_t swap32(uint32_t x);
 uint64_t swap64(uint64_t x);

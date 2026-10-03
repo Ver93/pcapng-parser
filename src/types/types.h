@@ -1,6 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef enum {
@@ -8,17 +9,20 @@ typedef enum {
     IS_LITTLE_ENDIAN = 1
 } endianness_t;
 
-typedef struct {
-    uint16_t code;
-    uint16_t length;
-    uint8_t *value;
-} options_t;
+typedef enum {
+    PARSE_OK = 0,
+    PARSE_EOF,
+    PARSE_TRUNCATED,
+    PARSE_INVALID,
+    PARSE_IO_ERROR,
+    PARSE_OOM
+} parse_result_t;
 
 typedef struct {
     uint16_t code;
     uint16_t length;
     uint8_t *value;
-} packet_data_t;
+} options_t;
 
 typedef struct {
     uint32_t block_type;
@@ -56,5 +60,16 @@ typedef struct {
     size_t options_count;
     uint32_t block_footer;
 } epb_t;
+
+typedef struct {
+    shb_t shb;
+
+    idb_t *interfaces;
+    size_t interface_count;
+
+    epb_t *packets;
+    size_t packet_count;
+    
+} pcapng_t;
 
 #endif
