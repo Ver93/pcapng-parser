@@ -1,2 +1,5 @@
-bin/data
-bin/output
+bin/
+bin/data/
+bin/output/
+
+*.bat
